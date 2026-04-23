@@ -11,12 +11,15 @@
 </head>
 <body>
 
-  <div class="logo"><h1>Quote<span>Pro</span></h1></div>   
+  <div class="logo"><h1>Quote<span>Pro</span></h1>
+    <button class="theme-toggle" id="themeToggle" title="Toggle Light/Dark"></button>
+  </div>   
+
+
 <div class="app">
 
   <!-- ═══════════════ DESKTOP SIDEBAR ═══════════════ -->
   <aside class="sidebar">
-    <!-- <div class="logo"><h1>Quote<span>Pro</span></h1></div> -->
 
     <!-- Canvas -->
     <div class="cg">
@@ -42,6 +45,7 @@
     <div class="cg">
       <h3>Background</h3>
       <label class="file-lbl">Upload Background<input type="file" id="bgUpload" accept="image/*"></label>
+      <button id="cropBgBtn" class="btn-outline" style="width:100%; margin-top:8px;">✂ Crop BG</button>
     </div>
 
     <!-- Elements -->
@@ -49,6 +53,7 @@
       <h3>Elements</h3>
       <button id="addTextBtn" class="btn-primary">Add Text</button>
       <label class="file-lbl" style="margin-top:7px;">Add Image / Logo<input type="file" id="elementUpload" accept="image/*"></label>
+      
     </div>
 
     <!-- Style Editor -->
@@ -77,7 +82,9 @@
         <div class="btn-row" style="margin-top:10px;">
           <button class="icon-btn" id="boldBtn"><b>B</b></button>
           <button class="icon-btn" id="italicBtn"><i>I</i></button>
+          
         </div>
+       
       </div>
 
       <!-- Image Controls -->
@@ -95,10 +102,25 @@
         </div>
         <label>Opacity</label>
         <input type="range" id="elOpacity" min="0.1" max="1" step="0.05" value="1">
+         <button id="removeBgBtn" class="btn-outline" style="width:100%; margin-top:8px;">✂ Remove BG</button>
       </div>
 
       <button id="deleteBtn">🗑 Delete Selected</button>
+
+          <label>Rotation</label>
+<div class="size-row">
+  <input type="range" id="rotationSlider" min="-180" max="180" value="0">
+  <span class="size-val" id="rotationVal">0°</span>
+</div>
+<div class="btn-row" style="margin-top:4px;">
+  <button class="btn-outline" id="rotateLeft">↺ -15°</button>
+  <button class="btn-outline" id="rotateRight">↻ +15°</button>
+</div>
+
     </div>
+
+
+
 
     <!-- History -->
     <div class="cg">
@@ -186,6 +208,9 @@
           <button class="pill-btn" id="mRedoBtn">↪ Redo</button>
         </div>
         <label class="file-lbl" style="margin-top:8px;">📷 Upload Background<input type="file" id="bgUploadMobile" accept="image/*"></label>
+        <div class="pill-row" style="margin-top:8px;">
+  <button class="pill-btn" id="mCropBgBtn">✂ Crop BG</button>
+</div>
       </div>
 
       <!-- PHOTOS TAB -->
@@ -256,9 +281,23 @@
             <input type="range" id="mElOpacity" min="0.1" max="1" step="0.05" value="1">
             <span class="panel-size-val" id="mOpacityVal">100%</span>
           </div>
+
+          <button id="mRemoveBgBtn" class="pill-btn" style="width:100%; margin-bottom:8px;">✂ Remove BG</button>
         </div>
 
         <button class="pill-btn danger" id="mDeleteBtn" style="width:100%; margin-top:10px;">🗑 Delete Selected</button>
+
+        <span class="row-lbl">Rotation</span>
+<div class="panel-size-row">
+  <label>Rotate</label>
+  <input type="range" id="mRotationSlider" min="-180" max="180" value="0">
+  <span class="panel-size-val" id="mRotationVal">0°</span>
+</div>
+<div class="pill-row">
+  <button class="pill-btn" id="mRotateLeft">↺ -15°</button>
+  <button class="pill-btn" id="mRotateRight">↻ +15°</button>
+</div>
+
       </div>
 
       <!-- EXPORT TAB -->
@@ -274,9 +313,11 @@
   </div><!-- /mobile-ui -->
 
 </div><!-- /app -->
+
 <button class="mobile-fab" id="toggleMobileUI">
   ☰
 </button>
+
 
 <script src="script.js"></script>
 </body>
