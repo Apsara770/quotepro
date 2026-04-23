@@ -253,6 +253,7 @@ mainCanvas.addEventListener('touchstart', (e) => { if (e.target === mainCanvas) 
 function reAttachEvents() {
   mainCanvas.querySelectorAll('.canvas-element').forEach(el => {
     makeDraggable(el);
+el.querySelectorAll && el.style && el.dataset.rotation && (el.style.transform = `rotate(${el.dataset.rotation}deg)`);
     attachElementListeners(el);
     if (el.classList.contains('image-element')) {
       const r = el.querySelector('.resizer');
@@ -501,6 +502,7 @@ function switchMobileTab(tabId) {
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab===tabId));
   document.querySelectorAll('.panel-section').forEach(s => s.classList.toggle('active', s.id==='tab-'+tabId));
 }
+
 const toggleBtn = document.getElementById("toggleMobileUI");
 const mobileUI = document.querySelector(".mobile-ui");
 
@@ -514,6 +516,227 @@ toggleBtn.addEventListener("click", () => {
     toggleBtn.innerHTML = "☰";
   }
 });
+
+/* ── Remove Background ── */
+const REMOVEBG_KEY = 'r78iwapZNqPoJnUpziWLXsQs'; // get free key at remove.bg
+
+async function removeBgFromSelected() {
+  if (!selectedElement || !selectedElement.classList.contains('image-element')) {
+    alert('Select an image/logo element first.');
+    return;
+  }
+  const img = selectedElement.querySelector('img');
+  if (!img) return;
+
+  const btn = document.getElementById('removeBgBtn');
+  const mBtn = document.getElementById('mRemoveBgBtn');
+  if (btn) btn.textContent = '⏳ Processing...';
+  if (mBtn) mBtn.textContent = '⏳ Processing...';
+
+  try {
+    // Convert image src to blob
+    const response = await fetch(img.src);
+    const blob = await response.blob();
+    const formData = new FormData();
+    formData.append('image_file', blob, 'image.png');
+    formData.append('size', 'auto');
+
+    const res = await fetch('https://api.remove.bg/v1.0/removebg', {
+      method: 'POST',
+      headers: { 'X-Api-Key': REMOVEBG_KEY },
+      body: formData
+    });
+
+    if (!res.ok) throw new Error('API error: ' + res.status);
+    const resultBlob = await res.blob();
+    const url = URL.createObjectURL(resultBlob);
+    img.src = url;
+    saveState();
+    alert('Background removed!');
+  } catch (e) {
+    console.error(e);
+    alert('Remove BG failed. Check your API key or try a different image.');
+  } finally {
+    if (btn) btn.textContent = '✂ Remove BG';
+    if (mBtn) mBtn.textContent = '✂ Remove BG';
+  }
+}
+
+document.getElementById('removeBgBtn')?.addEventListener('click', removeBgFromSelected);
+document.getElementById('mRemoveBgBtn')?.addEventListener('click', removeBgFromSelected);
+
+/* ── Theme Toggle ── */
+const themeToggle = document.getElementById('themeToggle');
+const savedTheme = localStorage.getItem('qpTheme');
+if (savedTheme === 'light') document.body.classList.add('light-theme');
+
+themeToggle?.addEventListener('click', () => {
+  document.body.classList.toggle('light-theme');
+  localStorage.setItem('qpTheme', document.body.classList.contains('light-theme') ? 'light' : 'dark');
+});
+
+/* ── Crop Background Image ── */
+let cropMode = false;
+let cropStart = null;
+let cropOverlay = null;
+let cropBox = null;
+
+function startCropMode() {
+  if (!mainCanvas.style.backgroundImage || mainCanvas.style.backgroundImage === 'none') {
+    alert('No background image set. Upload a background first.');
+    return;
+  }
+  cropMode = true;
+  document.getElementById('cropBgBtn').textContent = '❌ Cancel Crop';
+  document.getElementById('mCropBgBtn').textContent = '❌ Cancel Crop';
+
+  // Create overlay
+  cropOverlay = document.createElement('div');
+  cropOverlay.id = 'cropOverlay';
+  cropOverlay.style.cssText = `
+    position:absolute; inset:0; z-index:200; cursor:crosshair;
+    background:rgba(0,0,0,0.01);
+  `;
+
+  cropBox = document.createElement('div');
+  cropBox.style.cssText = `
+    position:absolute; border:2px dashed #7c5cfc; background:rgba(124,92,252,0.12);
+    pointer-events:none; display:none;
+  `;
+
+  cropOverlay.appendChild(cropBox);
+  mainCanvas.appendChild(cropOverlay);
+
+  cropOverlay.addEventListener('mousedown', cropDragStart);
+  cropOverlay.addEventListener('touchstart', cropDragStart, {passive:false});
+}
+
+function cropDragStart(e) {
+  e.preventDefault();
+  const rect = mainCanvas.getBoundingClientRect();
+  const isTouch = e.type === 'touchstart';
+  const cx = (isTouch ? e.touches[0].clientX : e.clientX) - rect.left;
+  const cy = (isTouch ? e.touches[0].clientY : e.clientY) - rect.top;
+  cropStart = { x: cx, y: cy };
+  cropBox.style.left = cx + 'px';
+  cropBox.style.top = cy + 'px';
+  cropBox.style.width = '0';
+  cropBox.style.height = '0';
+  cropBox.style.display = 'block';
+
+  const moveEv = isTouch ? 'touchmove' : 'mousemove';
+  const endEv = isTouch ? 'touchend' : 'mouseup';
+
+  function cropDragMove(e) {
+    if (e.cancelable) e.preventDefault();
+    const rect = mainCanvas.getBoundingClientRect();
+    const isTouch = e.type === 'touchmove';
+    const cx2 = (isTouch ? e.touches[0].clientX : e.clientX) - rect.left;
+    const cy2 = (isTouch ? e.touches[0].clientY : e.clientY) - rect.top;
+    const x = Math.min(cropStart.x, cx2);
+    const y = Math.min(cropStart.y, cy2);
+    const w = Math.abs(cx2 - cropStart.x);
+    const h = Math.abs(cy2 - cropStart.y);
+    cropBox.style.left = x + 'px';
+    cropBox.style.top = y + 'px';
+    cropBox.style.width = w + 'px';
+    cropBox.style.height = h + 'px';
+  }
+
+  function cropDragEnd(e) {
+    document.removeEventListener(moveEv, cropDragMove);
+    document.removeEventListener(endEv, cropDragEnd);
+
+    const x = parseInt(cropBox.style.left);
+    const y = parseInt(cropBox.style.top);
+    const w = parseInt(cropBox.style.width);
+    const h = parseInt(cropBox.style.height);
+
+    if (w < 10 || h < 10) { cancelCrop(); return; }
+
+    // Apply crop via background-position and background-size
+    const cW = mainCanvas.offsetWidth;
+    const cH = mainCanvas.offsetHeight;
+    const scaleX = 100 / w * cW / 100;
+    const scaleY = 100 / h * cH / 100;
+    const posX = -(x / cW) * 100 * scaleX;
+    const posY = -(y / cH) * 100 * scaleY;
+
+    mainCanvas.style.backgroundSize = (scaleX * 100) + '% ' + (scaleY * 100) + '%';
+    mainCanvas.style.backgroundPosition = posX + '% ' + posY + '%';
+    cancelCrop();
+    saveState();
+  }
+
+  document.addEventListener(moveEv, cropDragMove, {passive:false});
+  document.addEventListener(endEv, cropDragEnd);
+}
+
+function cancelCrop() {
+  cropMode = false;
+  if (cropOverlay) { cropOverlay.remove(); cropOverlay = null; cropBox = null; }
+  const btn = document.getElementById('cropBgBtn');
+  const mBtn = document.getElementById('mCropBgBtn');
+  if (btn) btn.textContent = '✂ Crop BG';
+  if (mBtn) mBtn.textContent = '✂ Crop BG';
+}
+
+document.getElementById('cropBgBtn')?.addEventListener('click', () => {
+  cropMode ? cancelCrop() : startCropMode();
+});
+document.getElementById('mCropBgBtn')?.addEventListener('click', () => {
+  cropMode ? cancelCrop() : startCropMode();
+});
+
+/* ── Rotate Elements ── */
+function applyRotation(deg) {
+  if (!selectedElement) return;
+  const current = selectedElement.dataset.rotation ? parseFloat(selectedElement.dataset.rotation) : 0;
+  const newRot = current + deg;
+  selectedElement.dataset.rotation = newRot;
+  selectedElement.style.transform = `rotate(${newRot}deg)`;
+  syncRotationDisplay(newRot);
+  saveState();
+}
+
+function setRotation(deg) {
+  if (!selectedElement) return;
+  selectedElement.dataset.rotation = deg;
+  selectedElement.style.transform = `rotate(${deg}deg)`;
+  syncRotationDisplay(deg);
+  saveState();
+}
+
+function syncRotationDisplay(deg) {
+  const rv = document.getElementById('rotationVal');
+  const mrv = document.getElementById('mRotationVal');
+  const rs = document.getElementById('rotationSlider');
+  const mrs = document.getElementById('mRotationSlider');
+  if (rv) rv.textContent = Math.round(deg) + '°';
+  if (mrv) mrv.textContent = Math.round(deg) + '°';
+  if (rs) rs.value = deg;
+  if (mrs) mrs.value = deg;
+}
+
+document.getElementById('rotateLeft')?.addEventListener('click', () => applyRotation(-15));
+document.getElementById('rotateRight')?.addEventListener('click', () => applyRotation(15));
+document.getElementById('mRotateLeft')?.addEventListener('click', () => applyRotation(-15));
+document.getElementById('mRotateRight')?.addEventListener('click', () => applyRotation(15));
+document.getElementById('rotationSlider')?.addEventListener('input', (e) => setRotation(e.target.value));
+document.getElementById('mRotationSlider')?.addEventListener('input', (e) => setRotation(e.target.value));
+
+// Show rotation when element selected — patch into showStyleControls
+const _origShowStyle = showStyleControls;
+// Extend showStyleControls to sync rotation UI
+const origShowStyleControls = showStyleControls;
+window.showStyleControlsWithRotation = function(el) {
+  origShowStyleControls(el);
+  const rot = el.dataset.rotation ? parseFloat(el.dataset.rotation) : 0;
+  syncRotationDisplay(rot);
+};
+// Override
+window.showStyleControls = window.showStyleControlsWithRotation;
+
 
 /* ── Initial canvas size ── */
 setCanvasSize("1/1");
