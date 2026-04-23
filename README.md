@@ -135,8 +135,8 @@ open index.html
 
 ## 📸 Screenshots
 
-> Add your app screenshots here 👇
-> (Canvas view, UI panel, export result)
+<img width="1913" height="931" alt="image" src="https://github.com/user-attachments/assets/75cf955e-0199-4cc7-8be2-69131cf56965" />
+
 
 ---
 
