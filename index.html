@@ -2,143 +2,279 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quote Designer Pro | Premium Design Tool</title>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Pacifico&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>QuotePro | Premium Design Tool</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-    <div class="app-container">
-        <aside class="sidebar">
-            <div class="logo">
-                <h1>Quote<span>Pro</span></h1>
-            </div>
+  <div class="logo"><h1>Quote<span>Pro</span></h1></div>   
+<div class="app">
 
-            <section class="control-group">
-                <h3>Canvas Settings</h3>
-                <button id="newDesignBtn" class="btn-primary">+ New Design</button>
-                <label>Aspect Ratio</label>
-                <div class="btn-group-grid">
-                    <button class="ratio-btn active" data-ratio="1/1">1:1 (Post)</button>
-                    <button class="ratio-btn" data-ratio="9/16">9:16 (Story)</button>
-                    <button class="ratio-btn" data-ratio="16/9">16:9 (YT)</button>
-                </div>
-            </section>
+  <!-- ═══════════════ DESKTOP SIDEBAR ═══════════════ -->
+  <aside class="sidebar">
+    <!-- <div class="logo"><h1>Quote<span>Pro</span></h1></div> -->
 
-            <section class="control-group">
-                <h3>Stock Photos (Unsplash)</h3>
-                <div class="row">
-                    <input type="text" id="photoSearchInput" placeholder="Search photos (e.g. Nature)">
-                    <button id="searchPhotosBtn" class="btn-primary" style="margin-top: 10px;">Search</button>
-                </div>
-                <div id="photoResults" style="display: grid; grid-template-columns: 1fr 1fr; gap: 5px; max-height: 200px; overflow-y: auto; margin-top: 10px;"></div>
-            </section>
-
-            <section class="control-group">
-                <h3>Background</h3>
-                <label class="file-input">
-                    Upload Background
-                    <input type="file" id="bgUpload" accept="image/*">
-                </label>
-            </section>
-
-            <section class="control-group">
-                <h3>Elements</h3>
-                <button id="addTextBtn" class="btn-primary">Add Text</button>
-                <label class="file-input secondary">
-                    Add Image / Logo
-                    <input type="file" id="elementUpload" accept="image/*">
-                </label>
-            </section>
-
-            <section class="control-group" id="editorPanel">
-                <h3>Style Editor</h3>
-                <p class="hint">Select an element to edit</p>
-
-                <!-- TEXT CONTROLS -->
-                <div class="controls-hidden" id="textControls">
-                    <div class="row">
-                        <label>Font</label>
-                        <select id="fontFamily">
-                            <option value="Arial">Arial</option>
-                            <option value="Montserrat">Montserrat</option>
-                            <option value="Roboto">Roboto</option>
-                            <option value="Pacifico">Pacifico</option>
-                        </select>
-                    </div>
-                    <div class="row">
-                        <label>Size</label>
-                        <input type="range" id="fontSize" min="10" max="150" value="30">
-                    </div>
-                    <div class="row">
-                        <label>Color</label>
-                        <input type="color" id="textColor" value="#ffffff">
-                    </div>
-                    <div class="btn-group">
-                        <button id="boldBtn">B</button>
-                        <button id="italicBtn">I</button>
-                    </div>
-                </div>
-
-                <!-- IMAGE / LOGO CONTROLS -->
-                <div class="controls-hidden" id="imageControls">
-
-                    <!-- ✅ Logo Size Slider (අලුතෙන් add කළේ) -->
-                    <div class="row" style="margin-top: 4px;">
-                        <label style="display:flex; justify-content:space-between; align-items:center;">
-                            <span>Size</span>
-                            <span id="logoSizeValue" style="color: var(--accent-light); font-size:11px; font-weight:600;">80px</span>
-                        </label>
-                        <input type="range" id="logoSize" min="20" max="500" value="80">
-                    </div>
-
-                    <!-- Shape Buttons -->
-                    <label style="margin-top: 12px; display: block;">Shape Style</label>
-                    <div class="btn-group">
-                        <button class="shape-btn active" data-shape="square">Square</button>
-                        <button class="shape-btn" data-shape="circle">Circle</button>
-                        <button class="shape-btn" data-shape="oval">Oval</button>
-                    </div>
-
-                    <!-- Opacity -->
-                    <div class="row" style="margin-top: 12px;">
-                        <label>Opacity</label>
-                        <input type="range" id="elOpacity" min="0.1" max="1" step="0.1" value="1">
-                    </div>
-                </div>
-
-                <button id="deleteBtn" class="btn-outline" style="border-color: #ff4d4d; color: #ff4d4d; margin-top: 20px;">
-                    Delete Selected
-                </button>
-            </section>
-
-            <section class="control-group">
-                <h3>History</h3>
-                <div class="btn-group">
-                    <button id="undoBtn" class="btn-outline">Undo</button>
-                    <button id="redoBtn" class="btn-outline">Redo</button>
-                </div>
-            </section>
-
-            <section class="control-group export-group">
-                <h3>Export</h3>
-                <button id="downloadPNG" class="btn-outline">Download PNG</button>
-                <button id="downloadPDF" class="btn-outline">Download PDF</button>
-            </section>
-        </aside>
-
-        <main class="workspace">
-            <div id="canvasContainer" class="canvas-container">
-                <div id="guide-x" class="guide-line v-guide"></div>
-                <div id="guide-y" class="guide-line h-guide"></div>
-                <div id="mainCanvas" class="design-canvas"></div>
-            </div>
-        </main>
+    <!-- Canvas -->
+    <div class="cg">
+      <h3>Canvas</h3>
+      <button id="newDesignBtn" class="btn-primary">+ New Design</button>
+      <label>Aspect Ratio</label>
+      <div class="btn-grid" style="margin-top:4px;">
+        <button class="ratio-btn active" data-ratio="1/1">1:1 Post</button>
+        <button class="ratio-btn" data-ratio="9/16">9:16 Story</button>
+        <button class="ratio-btn" data-ratio="16/9">16:9 Wide</button>
+      </div>
     </div>
 
-    <script src="script.js"></script>
+    <!-- Stock Photos -->
+    <div class="cg">
+      <h3>Stock Photos</h3>
+      <input type="text" id="photoSearchInput" placeholder="Search (e.g. Nature)">
+      <button id="searchPhotosBtn" class="btn-primary" style="margin-top:8px;">Search Unsplash</button>
+      <div id="photoResults"></div>
+    </div>
+
+    <!-- Background -->
+    <div class="cg">
+      <h3>Background</h3>
+      <label class="file-lbl">Upload Background<input type="file" id="bgUpload" accept="image/*"></label>
+    </div>
+
+    <!-- Elements -->
+    <div class="cg">
+      <h3>Elements</h3>
+      <button id="addTextBtn" class="btn-primary">Add Text</button>
+      <label class="file-lbl" style="margin-top:7px;">Add Image / Logo<input type="file" id="elementUpload" accept="image/*"></label>
+    </div>
+
+    <!-- Style Editor -->
+    <div class="cg" id="editorPanel">
+      <h3>Style Editor</h3>
+      <p class="hint" id="editorHint">Select an element to edit</p>
+
+      <!-- Text Controls -->
+      <div class="ctrl-hidden" id="textControls">
+        <label>Font Family</label>
+        <select id="fontFamily">
+          <option value="Arial">Arial</option>
+          <option value="Montserrat">Montserrat</option>
+          <option value="Roboto">Roboto</option>
+          <option value="Pacifico">Pacifico</option>
+          <option value="Georgia">Georgia</option>
+          <option value="Courier New">Courier New</option>
+        </select>
+        <label>Font Size</label>
+        <div class="size-row">
+          <input type="range" id="fontSize" min="10" max="150" value="30">
+          <span class="size-val" id="fontSizeVal">30px</span>
+        </div>
+        <label>Text Color</label>
+        <input type="color" id="textColor" value="#ffffff">
+        <div class="btn-row" style="margin-top:10px;">
+          <button class="icon-btn" id="boldBtn"><b>B</b></button>
+          <button class="icon-btn" id="italicBtn"><i>I</i></button>
+        </div>
+      </div>
+
+      <!-- Image Controls -->
+      <div class="ctrl-hidden" id="imageControls">
+        <label>Size</label>
+        <div class="size-row">
+          <input type="range" id="logoSize" min="20" max="600" value="80">
+          <span class="size-val" id="logoSizeVal">80px</span>
+        </div>
+        <label>Shape</label>
+        <div class="btn-grid" style="margin-top:4px;">
+          <button class="shape-btn active" data-shape="square">Square</button>
+          <button class="shape-btn" data-shape="circle">Circle</button>
+          <button class="shape-btn" data-shape="oval">Oval</button>
+        </div>
+        <label>Opacity</label>
+        <input type="range" id="elOpacity" min="0.1" max="1" step="0.05" value="1">
+      </div>
+
+      <button id="deleteBtn">🗑 Delete Selected</button>
+    </div>
+
+    <!-- History -->
+    <div class="cg">
+      <h3>History</h3>
+      <div class="btn-row">
+        <button class="btn-outline" id="undoBtn">↩ Undo</button>
+        <button class="btn-outline" id="redoBtn">↪ Redo</button>
+      </div>
+    </div>
+
+    <!-- Export -->
+    <div class="cg export-cg">
+      <h3>Export</h3>
+      <div class="btn-row">
+        <button class="btn-outline" id="downloadPNG">⬇ PNG</button>
+        <button class="btn-outline" id="downloadPDF">⬇ PDF</button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ═══════════════ WORKSPACE ═══════════════ -->
+  <main class="workspace">
+    <div class="canvas-container">
+      <div id="guide-x" class="guide-line v-guide"></div>
+      <div id="guide-y" class="guide-line h-guide"></div>
+      <div id="mainCanvas" class="design-canvas"></div>
+    </div>
+  </main>
+
+  <!-- ═══════════════ MOBILE BOTTOM UI ═══════════════ -->
+   
+  <div class="mobile-ui">
+
+    <!-- Tab Bar -->
+    <div class="tab-bar">
+      <button class="tab-btn active" data-tab="canvas">
+        <div class="tab-icon-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="12" cy="12" r="3"/></svg>
+        </div>
+        <span>Canvas</span>
+      </button>
+      <button class="tab-btn" data-tab="photos">
+        <div class="tab-icon-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+        </div>
+        <span>Photos</span>
+      </button>
+      <button class="tab-btn" data-tab="add">
+        <div class="tab-icon-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>
+        </div>
+        <span>Add</span>
+      </button>
+      <button class="tab-btn" data-tab="style">
+        <div class="tab-icon-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+        </div>
+        <span>Style</span>
+      </button>
+      <button class="tab-btn" data-tab="export">
+        <div class="tab-icon-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        </div>
+        <span>Export</span>
+      </button>
+    </div>
+
+    <!-- Panel -->
+    <div class="mobile-panel">
+
+      <!-- CANVAS TAB -->
+      <div class="panel-section active" id="tab-canvas">
+        <h4>Canvas Settings</h4>
+        <div class="pill-row">
+          <button class="pill-btn danger" id="mNewDesignBtn">+ New Design</button>
+        </div>
+        <span class="row-lbl">Aspect Ratio</span>
+        <div class="panel-grid-3">
+          <button class="ratio-btn active" data-ratio="1/1">1:1 Post</button>
+          <button class="ratio-btn" data-ratio="9/16">9:16 Story</button>
+          <button class="ratio-btn" data-ratio="16/9">16:9 Wide</button>
+        </div>
+        <div class="pill-row" style="margin-top:10px;">
+          <button class="pill-btn" id="mUndoBtn">↩ Undo</button>
+          <button class="pill-btn" id="mRedoBtn">↪ Redo</button>
+        </div>
+        <label class="file-lbl" style="margin-top:8px;">📷 Upload Background<input type="file" id="bgUploadMobile" accept="image/*"></label>
+      </div>
+
+      <!-- PHOTOS TAB -->
+      <div class="panel-section" id="tab-photos">
+        <h4>Stock Photos (Unsplash)</h4>
+        <input type="text" id="photoSearchMobile" placeholder="Search photos (e.g. Mountains)">
+        <div class="pill-row" style="margin-top:6px;">
+          <button class="pill-btn accent" id="searchPhotosMobile">Search</button>
+        </div>
+        <div id="photoResultsMobile"></div>
+      </div>
+
+      <!-- ADD TAB -->
+      <div class="panel-section" id="tab-add">
+        <h4>Add Elements</h4>
+        <div class="pill-row">
+          <button class="pill-btn accent" id="mAddTextBtn">✏️ Add Text</button>
+        </div>
+        <label class="file-lbl">🖼 Add Image / Logo<input type="file" id="elementUploadMobile" accept="image/*"></label>
+      </div>
+
+      <!-- STYLE TAB -->
+      <div class="panel-section" id="tab-style">
+        <h4>Style Editor</h4>
+        <p class="hint" id="mEditorHint" style="margin-bottom:8px;">Select an element on canvas</p>
+
+        <!-- Mobile text controls -->
+        <div class="m-ctrl" id="mTextControls">
+          <span class="row-lbl">Font</span>
+          <select id="mFontFamily" style="margin-bottom:8px;">
+            <option value="Arial">Arial</option>
+            <option value="Montserrat">Montserrat</option>
+            <option value="Roboto">Roboto</option>
+            <option value="Pacifico">Pacifico</option>
+            <option value="Georgia">Georgia</option>
+          </select>
+          <span class="row-lbl">Font Size</span>
+          <div class="panel-size-row">
+            <label>Size</label>
+            <input type="range" id="mFontSize" min="10" max="150" value="30">
+            <span class="panel-size-val" id="mFontSizeVal">30px</span>
+          </div>
+          <span class="row-lbl">Text Color</span>
+          <input type="color" id="mTextColor" value="#ffffff" style="margin-bottom:8px;">
+          <div class="pill-row">
+            <button class="pill-btn" id="mBoldBtn"><b>Bold</b></button>
+            <button class="pill-btn" id="mItalicBtn"><i>Italic</i></button>
+          </div>
+        </div>
+
+        <!-- Mobile image controls -->
+        <div class="m-ctrl" id="mImageControls">
+          <!-- SIZE SLIDER - prominent -->
+          <div class="panel-size-row">
+            <label>Size</label>
+            <input type="range" id="mLogoSize" min="20" max="500" value="80">
+            <span class="panel-size-val" id="mLogoSizeVal">80px</span>
+          </div>
+          <span class="row-lbl">Shape</span>
+          <div class="panel-grid-3" style="margin-bottom:10px;">
+            <button class="shape-btn active" data-shape="square">Square</button>
+            <button class="shape-btn" data-shape="circle">Circle</button>
+            <button class="shape-btn" data-shape="oval">Oval</button>
+          </div>
+          <span class="row-lbl">Opacity</span>
+          <div class="panel-size-row">
+            <label>Opacity</label>
+            <input type="range" id="mElOpacity" min="0.1" max="1" step="0.05" value="1">
+            <span class="panel-size-val" id="mOpacityVal">100%</span>
+          </div>
+        </div>
+
+        <button class="pill-btn danger" id="mDeleteBtn" style="width:100%; margin-top:10px;">🗑 Delete Selected</button>
+      </div>
+
+      <!-- EXPORT TAB -->
+      <div class="panel-section" id="tab-export">
+        <h4>Export Design</h4>
+        <div class="pill-row">
+          <button class="pill-btn accent" id="mDownloadPNG">⬇ Download PNG</button>
+          <button class="pill-btn" id="mDownloadPDF">⬇ Download PDF</button>
+        </div>
+      </div>
+
+    </div><!-- /mobile-panel -->
+  </div><!-- /mobile-ui -->
+
+</div><!-- /app -->
+
+<script src="script.js"></script>
 </body>
 </html>
