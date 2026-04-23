@@ -11,7 +11,6 @@ let historyStep = -1;
 
 // --- 1. AUTO-SAVE & NEW DESIGN LOGIC ---
 
-// LocalStorage වලට design එක save කිරීම
 function autoSave() {
     const designData = {
         html: mainCanvas.innerHTML,
@@ -21,7 +20,6 @@ function autoSave() {
     localStorage.setItem('quoteProDesign', JSON.stringify(designData));
 }
 
-// Page එක load වෙද්දී පරණ design එක ගැනීම
 window.onload = () => {
     const saved = localStorage.getItem('quoteProDesign');
     if (saved) {
@@ -35,7 +33,6 @@ window.onload = () => {
     saveState();
 };
 
-// New Design Button
 document.getElementById('newDesignBtn').addEventListener('click', () => {
     if (confirm("Are you sure you want to start a new design? Current progress will be lost.")) {
         mainCanvas.innerHTML = "";
@@ -97,7 +94,7 @@ function makeDraggable(el) {
     function dragMove(e) {
         const clientX = e.type === 'touchmove' ? e.touches[0].clientX : e.clientX;
         const clientY = e.type === 'touchmove' ? e.touches[0].clientY : e.clientY;
-        
+
         pos1 = pos3 - clientX;
         pos2 = pos4 - clientY;
         pos3 = clientX;
@@ -106,7 +103,6 @@ function makeDraggable(el) {
         let newTop = el.offsetTop - pos2;
         let newLeft = el.offsetLeft - pos1;
 
-        // --- Snap to Center Logic ---
         const canvasWidth = mainCanvas.offsetWidth;
         const canvasHeight = mainCanvas.offsetHeight;
         const elWidth = el.offsetWidth;
@@ -117,7 +113,6 @@ function makeDraggable(el) {
         const canvasCenterH = canvasWidth / 2;
         const canvasCenterV = canvasHeight / 2;
 
-        // Vertical Guide (X-axis snap)
         if (Math.abs(elCenterH - canvasCenterH) < 10) {
             newLeft = canvasCenterH - (elWidth / 2);
             guideX.style.display = 'block';
@@ -125,7 +120,6 @@ function makeDraggable(el) {
             guideX.style.display = 'none';
         }
 
-        // Horizontal Guide (Y-axis snap)
         if (Math.abs(elCenterV - canvasCenterV) < 10) {
             newTop = canvasCenterV - (elHeight / 2);
             guideY.style.display = 'block';
@@ -146,7 +140,7 @@ function makeDraggable(el) {
     }
 }
 
-// --- 4. HISTORY & CORE (Keep existing logic with autoSave call) ---
+// --- 4. HISTORY ---
 
 function saveState() {
     historyStep++;
@@ -162,7 +156,7 @@ function reAttachEvents() {
         attachElementListeners(el);
         if (el.classList.contains('image-element')) {
             const resizer = el.querySelector('.resizer');
-            if(resizer) makeResizable(el, resizer);
+            if (resizer) makeResizable(el, resizer);
         }
     });
 }
@@ -183,10 +177,12 @@ document.getElementById('redoBtn').addEventListener('click', () => {
     }
 });
 
-bgUpload.addEventListener('change', function(e) {
+bgUpload.addEventListener('change', function (e) {
     const reader = new FileReader();
     reader.onload = (event) => {
         mainCanvas.style.backgroundImage = `url(${event.target.result})`;
+        mainCanvas.style.backgroundSize = 'cover';
+        mainCanvas.style.backgroundPosition = 'center';
         saveState();
     };
     reader.readAsDataURL(e.target.files[0]);
@@ -208,18 +204,28 @@ addTextBtn.addEventListener('click', () => {
     saveState();
 });
 
-elementUpload.addEventListener('change', function(e) {
+// --- 5. IMAGE / LOGO UPLOAD (small default + size slider + shapes) ---
+elementUpload.addEventListener('change', function (e) {
     const reader = new FileReader();
     reader.onload = (event) => {
         const wrapper = document.createElement('div');
         wrapper.className = 'canvas-element image-element';
-        wrapper.style.width = '150px';
+        // ✅ Default size කුඩාව (80px)
+        wrapper.style.width = '80px';
         wrapper.style.left = '50%';
         wrapper.style.top = '50%';
+        wrapper.style.overflow = 'hidden';
+
         const img = document.createElement('img');
         img.src = event.target.result;
+        img.style.width = '100%';
+        img.style.height = '100%';
+        img.style.objectFit = 'cover';
+        img.style.display = 'block';
+
         const resizer = document.createElement('div');
         resizer.className = 'resizer';
+
         wrapper.appendChild(img);
         wrapper.appendChild(resizer);
         makeDraggable(wrapper);
@@ -230,19 +236,31 @@ elementUpload.addEventListener('change', function(e) {
         saveState();
     };
     reader.readAsDataURL(e.target.files[0]);
+    // File input reset (same file re-upload allow)
+    e.target.value = '';
 });
 
+// --- 6. SELECT ELEMENT & SHOW CONTROLS ---
 function selectElement(el) {
     if (selectedElement) selectedElement.classList.remove('selected');
     selectedElement = el;
     selectedElement.classList.add('selected');
     document.querySelector('.hint').style.display = 'none';
+
     if (el.classList.contains('text-element')) {
-        document.getElementById('textControls').className = 'controls-active';
+        document.getElementById('textControls').className = 'controls-hidden visible';
         document.getElementById('imageControls').className = 'controls-hidden';
     } else {
-        document.getElementById('imageControls').className = 'controls-active';
+        document.getElementById('imageControls').className = 'controls-hidden visible';
         document.getElementById('textControls').className = 'controls-hidden';
+
+        // ✅ Size slider sync: selected image එකේ current width show කරනවා
+        const currentWidth = parseInt(el.style.width) || 80;
+        document.getElementById('logoSize').value = currentWidth;
+        document.getElementById('logoSizeValue').textContent = currentWidth + 'px';
+
+        // Opacity sync
+        document.getElementById('elOpacity').value = el.style.opacity || 1;
     }
 }
 
@@ -260,6 +278,19 @@ function attachElementListeners(el) {
     });
 }
 
+// Click on canvas background = deselect
+mainCanvas.addEventListener('mousedown', (e) => {
+    if (e.target === mainCanvas) {
+        if (selectedElement) {
+            selectedElement.classList.remove('selected');
+            selectedElement = null;
+            document.querySelector('.hint').style.display = '';
+            document.getElementById('textControls').className = 'controls-hidden';
+            document.getElementById('imageControls').className = 'controls-hidden';
+        }
+    }
+});
+
 function makeResizable(el, resizer) {
     resizer.addEventListener('mousedown', (e) => {
         e.preventDefault();
@@ -269,7 +300,15 @@ function makeResizable(el, resizer) {
     });
     function resize(e) {
         const width = e.pageX - el.getBoundingClientRect().left;
-        if (width > 30) el.style.width = width + 'px';
+        if (width > 20) {
+            el.style.width = width + 'px';
+            el.style.height = width + 'px'; // Square/Circle maintain aspect
+            // ✅ Slider sync while resizing
+            if (selectedElement === el) {
+                document.getElementById('logoSize').value = width;
+                document.getElementById('logoSizeValue').textContent = Math.round(width) + 'px';
+            }
+        }
     }
     function stopResize() {
         window.removeEventListener('mousemove', resize);
@@ -277,24 +316,101 @@ function makeResizable(el, resizer) {
     }
 }
 
-// Style Listeners (Briefly)
-document.getElementById('fontFamily').addEventListener('change', (e) => { if(selectedElement) {selectedElement.style.fontFamily = e.target.value; saveState();} });
-document.getElementById('fontSize').addEventListener('input', (e) => { if(selectedElement) selectedElement.style.fontSize = e.target.value + 'px'; });
+// --- 7. LOGO SIZE SLIDER ---
+const logoSizeSlider = document.getElementById('logoSize');
+const logoSizeValue = document.getElementById('logoSizeValue');
+
+if (logoSizeSlider) {
+    logoSizeSlider.addEventListener('input', (e) => {
+        if (selectedElement && selectedElement.classList.contains('image-element')) {
+            const size = e.target.value;
+            selectedElement.style.width = size + 'px';
+            // Height: only set if circle/oval shape (maintain ratio)
+            const shape = selectedElement.dataset.shape;
+            if (shape === 'circle') {
+                selectedElement.style.height = size + 'px';
+            } else if (shape === 'oval') {
+                selectedElement.style.height = Math.round(size * 0.6) + 'px';
+            }
+            logoSizeValue.textContent = size + 'px';
+        }
+    });
+    logoSizeSlider.addEventListener('change', () => saveState());
+}
+
+// --- 8. SHAPE BUTTONS (Square / Circle / Oval) ---
+document.querySelectorAll('.shape-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        if (!selectedElement || !selectedElement.classList.contains('image-element')) return;
+
+        const shape = btn.dataset.shape;
+        selectedElement.dataset.shape = shape;
+        const currentWidth = parseInt(selectedElement.style.width) || 80;
+
+        // Reset
+        selectedElement.style.borderRadius = '0';
+        selectedElement.style.height = '';
+
+        document.querySelectorAll('.shape-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+
+        if (shape === 'circle') {
+            selectedElement.style.height = currentWidth + 'px';
+            selectedElement.style.borderRadius = '50%';
+        } else if (shape === 'oval') {
+            selectedElement.style.height = Math.round(currentWidth * 0.6) + 'px';
+            selectedElement.style.borderRadius = '50%';
+        } else {
+            // Square - no rounding
+            selectedElement.style.height = '';
+            selectedElement.style.borderRadius = '0';
+        }
+
+        saveState();
+    });
+});
+
+// --- 9. TEXT STYLE LISTENERS ---
+document.getElementById('fontFamily').addEventListener('change', (e) => {
+    if (selectedElement) { selectedElement.style.fontFamily = e.target.value; saveState(); }
+});
+document.getElementById('fontSize').addEventListener('input', (e) => {
+    if (selectedElement) selectedElement.style.fontSize = e.target.value + 'px';
+});
 document.getElementById('fontSize').addEventListener('change', () => saveState());
-document.getElementById('textColor').addEventListener('input', (e) => { if(selectedElement) selectedElement.style.color = e.target.value; });
+document.getElementById('textColor').addEventListener('input', (e) => {
+    if (selectedElement) selectedElement.style.color = e.target.value;
+});
 document.getElementById('textColor').addEventListener('change', () => saveState());
-document.getElementById('elOpacity').addEventListener('input', (e) => { if(selectedElement) selectedElement.style.opacity = e.target.value; });
+document.getElementById('elOpacity').addEventListener('input', (e) => {
+    if (selectedElement) selectedElement.style.opacity = e.target.value;
+});
 document.getElementById('elOpacity').addEventListener('change', () => saveState());
 
+// Bold / Italic
+document.getElementById('boldBtn').addEventListener('click', () => {
+    if (selectedElement) {
+        selectedElement.style.fontWeight = selectedElement.style.fontWeight === 'bold' ? 'normal' : 'bold';
+        saveState();
+    }
+});
+document.getElementById('italicBtn').addEventListener('click', () => {
+    if (selectedElement) {
+        selectedElement.style.fontStyle = selectedElement.style.fontStyle === 'italic' ? 'normal' : 'italic';
+        saveState();
+    }
+});
+
+// --- 10. DELETE ---
 document.getElementById('deleteBtn').addEventListener('click', () => {
-    if(selectedElement) {
+    if (selectedElement) {
         selectedElement.remove();
         selectedElement = null;
         saveState();
     }
 });
 
-// PNG/PDF Exports (Same as before)
+// --- 11. EXPORT ---
 document.getElementById('downloadPNG').addEventListener('click', () => {
     if (selectedElement) selectedElement.classList.remove('selected');
     html2canvas(mainCanvas, { scale: 2, useCORS: true }).then(canvas => {
@@ -305,29 +421,34 @@ document.getElementById('downloadPNG').addEventListener('click', () => {
     });
 });
 
-function rgbToHex(rgb) {
-    if (!rgb || rgb.startsWith('#')) return rgb;
-    const vals = rgb.match(/\d+/g);
-    return "#" + vals.map(x => parseInt(x).toString(16).padStart(2, '0')).join("");
-}
+document.getElementById('downloadPDF').addEventListener('click', () => {
+    if (selectedElement) selectedElement.classList.remove('selected');
+    html2canvas(mainCanvas, { scale: 2, useCORS: true }).then(canvas => {
+        const imgData = canvas.toDataURL('image/png');
+        const pdf = new window.jspdf.jsPDF({
+            orientation: mainCanvas.offsetWidth > mainCanvas.offsetHeight ? 'landscape' : 'portrait',
+            unit: 'px',
+            format: [mainCanvas.offsetWidth, mainCanvas.offsetHeight]
+        });
+        pdf.addImage(imgData, 'PNG', 0, 0, mainCanvas.offsetWidth, mainCanvas.offsetHeight);
+        pdf.save('design.pdf');
+    });
+});
 
+// --- 12. UNSPLASH STOCK PHOTOS ---
 const photoSearchInput = document.getElementById('photoSearchInput');
 const searchPhotosBtn = document.getElementById('searchPhotosBtn');
 const photoResults = document.getElementById('photoResults');
 
-// Unsplash API එකෙන් ලබාගත් Access Key එක මෙතනට දාන්න
-const UNSPLASH_KEY = '6qkKLcYIWPr901G4on7wawI_a4tpAW8iAs8GLXukMlI'; 
+const UNSPLASH_KEY = '6qkKLcYIWPr901G4on7wawI_a4tpAW8iAs8GLXukMlI';
 
 searchPhotosBtn.addEventListener('click', async () => {
     const query = photoSearchInput.value;
     if (!query) return;
-
     searchPhotosBtn.innerText = "Searching...";
-    
     try {
         const response = await fetch(`https://api.unsplash.com/search/photos?query=${query}&per_page=10&client_id=${UNSPLASH_KEY}`);
         const data = await response.json();
-        
         displayPhotos(data.results);
     } catch (error) {
         console.error("Error fetching photos:", error);
@@ -338,18 +459,14 @@ searchPhotosBtn.addEventListener('click', async () => {
 });
 
 function displayPhotos(photos) {
-    photoResults.innerHTML = ''; // පරණ රිසල්ට් මකනවා
-    
+    photoResults.innerHTML = '';
     photos.forEach(photo => {
         const img = document.createElement('img');
-        img.src = photo.urls.small; // කුඩා රූපය පෙන්වීමට
+        img.src = photo.urls.small;
         img.style.width = '100%';
         img.style.cursor = 'pointer';
         img.style.borderRadius = '5px';
-        
-        // ඉමේජ් එක ක්ලික් කළාම කැන්වසයට එකතු කිරීම
         img.onclick = () => addStockPhotoToCanvas(photo.urls.regular);
-        
         photoResults.appendChild(img);
     });
 }
@@ -360,21 +477,26 @@ function addStockPhotoToCanvas(imageUrl) {
     wrapper.style.width = '200px';
     wrapper.style.left = '50%';
     wrapper.style.top = '50%';
+    wrapper.style.overflow = 'hidden';
 
     const img = document.createElement('img');
     img.src = imageUrl;
-    img.crossOrigin = "anonymous"; // මේක වැදගත් (Export කරද්දී ප්‍රශ්න නොවෙන්න)
-    
+    img.crossOrigin = "anonymous";
+    img.style.width = '100%';
+    img.style.height = '100%';
+    img.style.objectFit = 'cover';
+    img.style.display = 'block';
+
     const resizer = document.createElement('div');
     resizer.className = 'resizer';
 
     wrapper.appendChild(img);
     wrapper.appendChild(resizer);
-    
+
     makeDraggable(wrapper);
     makeResizable(wrapper, resizer);
     attachElementListeners(wrapper);
-    
+
     mainCanvas.appendChild(wrapper);
     selectElement(wrapper);
     saveState();
