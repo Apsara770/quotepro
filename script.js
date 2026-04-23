@@ -501,6 +501,19 @@ function switchMobileTab(tabId) {
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab===tabId));
   document.querySelectorAll('.panel-section').forEach(s => s.classList.toggle('active', s.id==='tab-'+tabId));
 }
+const toggleBtn = document.getElementById("toggleMobileUI");
+const mobileUI = document.querySelector(".mobile-ui");
+
+toggleBtn.addEventListener("click", () => {
+  mobileUI.classList.toggle("active");
+
+  // icon change ☰ → ✖
+  if (mobileUI.classList.contains("active")) {
+    toggleBtn.innerHTML = "✖";
+  } else {
+    toggleBtn.innerHTML = "☰";
+  }
+});
 
 /* ── Initial canvas size ── */
 setCanvasSize("1/1");
