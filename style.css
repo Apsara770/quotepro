@@ -293,6 +293,47 @@ input[type=range]::-moz-range-thumb {
    - Top: canvas (full width, scrollable vertically)
    - Bottom: fixed tab bar + slide-up panel
 ══════════════════════════════════════════ */
+
+/* Floating bottom toggle button */
+.mobile-fab {
+  display: none;
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 9999;
+
+  width: 55px;
+  height: 55px;
+  border-radius: 50%;
+  border: none;
+
+  background: linear-gradient(135deg, #00c6ff, #7b2ff7);
+  color: white;
+  font-size: 26px;
+
+  box-shadow: 0 0 15px rgba(0,0,0,0.4);
+  cursor: pointer;
+}
+
+/* MOBILE ONLY */
+@media (max-width: 768px) {
+  .mobile-fab {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  /* hide mobile panel by default */
+  .mobile-ui {
+    transform: translateY(100%);
+    transition: 0.3s ease;
+  }
+
+  .mobile-ui.active {
+    transform: translateY(0);
+  }
+}
+
 @media (max-width: 768px) {
 
   body { overflow:hidden; }
